@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="form-section">
+
+    <div class="form-container">
+
+        <h2>Add New Student</h2>
+
+        <form action="/add-student" method="POST">
+
+            <!-- Student Name -->
+            <div class="form-group">
+
+                <label for="name">Student Name</label>
+
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Enter Student Name"
+                    required
+                >
+
+            </div>
+
+            <!-- USN -->
+            <div class="form-group">
+
+                <label for="usn">USN</label>
+
+                <input
+                    type="text"
+                    id="usn"
+                    name="usn"
+                    placeholder="Enter USN"
+                    required
+                >
+
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+
+                <label for="email">Email</label>
+
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="Enter Email"
+                    required
+                >
+
+            </div>
+
+            <!-- Phone -->
+            <div class="form-group">
+
+                <label for="phone">Phone Number</label>
+
+                <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    placeholder="Enter Phone Number"
+                    required
+                >
+
+            </div>
+
+            <!-- Department -->
+            <div class="form-group">
+
+                <label for="department">Department</label>
+
+                <select
+                    id="department"
+                    name="department"
+                >
+
+                    <option>ISE</option>
+
+                    <option>CSE</option>
+
+                    <option>ECE</option>
+
+                    <option>EEE</option>
+
+                    <option>ME</option>
+
+                </select>
+
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn">
+
+                Save Student
+
+            </button>
+
+        </form>
+
+    </div>
+
+</section>
+
+{% endblock %}

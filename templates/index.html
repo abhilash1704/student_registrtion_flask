@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero">
+
+    <div class="hero-content">
+
+        <h2>Welcome to Student Portal</h2>
+
+        <h3>Manage Student Records Easily</h3>
+
+        <p>
+            This application helps colleges manage student information.
+        </p>
+
+        <div class="hero-buttons">
+
+            <a href="/students" class="btn">View Students</a>
+
+            <a href="/add-student" class="btn">Add Student</a>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- Feature Cards -->
+<section class="features">
+
+    <div class="card">
+
+        <h3>👨‍🎓</h3>
+
+        <h4>Total Students</h4>
+
+        <p>120+</p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>📚</h3>
+
+        <h4>Departments</h4>
+
+        <p>8</p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>👨‍🏫</h3>
+
+        <h4>Faculty</h4>
+
+        <p>35+</p>
+
+    </div>
+
+</section>
+
+
+
+<!-- About Section --><!-- ==========================
+     About Section
+=========================== -->
+
+<section class="about">
+
+    <div class="about-image">
+
+        <img src="{{ url_for('static', filename='images/chiru.png') }}" alt="Student">
+    </div>
+
+    <div class="about-content">
+
+        <h2>About Student Portal</h2>
+
+        <p>
+            Student Portal is a Flask-based web application that helps colleges
+            manage student records efficiently and securely.
+        </p>
+
+        <div class="about-list">
+
+            <p>✔ Add Students</p>
+            <p>✔ Update Students</p>
+            <p>✔ Delete Students</p>
+            <p>✔ Search Students</p>
+
+        </div>
+
+        <a href="/about" class="btn">Learn More</a>
+
+    </div>
+
+</section>
+
+{% endblock %}
