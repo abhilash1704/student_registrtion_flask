@@ -43,7 +43,9 @@ def create_table():
     print("Students Table Created Successfully!")
 
 
-# Insert Student into Database
+# ---------------------------------
+# Insert Student
+# ---------------------------------
 def insert_student(name, usn, email, phone, department):
 
     connection = connect_db()
@@ -63,6 +65,7 @@ def insert_student(name, usn, email, phone, department):
 
     print("Student Saved Successfully!")
 
+
 # ---------------------------------
 # Get All Students
 # ---------------------------------
@@ -81,8 +84,51 @@ def get_students():
     return students
 
 
+# ---------------------------------
+# Get One Student By ID
+# ---------------------------------
+def get_student_by_id(student_id):
+
+    connection = connect_db()
+
+    cursor = connection.cursor()
+
+    cursor.execute(
+        "SELECT * FROM students WHERE id = ?",
+        (student_id,)
+    )
+
+    student = cursor.fetchone()
+
+    connection.close()
+
+    return student
+
+
 create_table()
 
-#students = get_students()
+# ---------------------------------
+# Update Student
+# ---------------------------------
+def update_student(id, name, usn, email, phone, department):
 
-#print(students)
+    connection = connect_db()
+
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        UPDATE students
+        SET
+            name = ?,
+            usn = ?,
+            email = ?,
+            phone = ?,
+            department = ?
+        WHERE id = ?
+    """, (name, usn, email, phone, department, id))
+
+    connection.commit()
+
+    connection.close()
+
+    print("Student Updated Successfully!")

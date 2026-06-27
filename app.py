@@ -1,5 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
-from database import insert_student, get_students
+
+from database import (
+    insert_student,
+    get_students,
+    get_student_by_id,
+    update_student
+)
+
 app = Flask(__name__)
 
 # Secret Key
@@ -37,6 +44,44 @@ def student_list():
         "students.html",
         students=students
     )
+
+# -----------------------------
+# Edit Student Page
+# -----------------------------
+@app.route("/edit-student/<int:id>")
+def edit_student(id):
+
+    student = get_student_by_id(id)
+
+    return render_template(
+        "edit_student.html",
+        student=student
+    )
+
+# -----------------------------
+# Update Student
+# -----------------------------
+@app.route("/update-student/<int:id>", methods=["POST"])
+def update_student_route(id):
+
+    name = request.form["name"]
+    usn = request.form["usn"]
+    email = request.form["email"]
+    phone = request.form["phone"]
+    department = request.form["department"]
+
+    update_student(
+        id,
+        name,
+        usn,
+        email,
+        phone,
+        department
+    )
+
+    flash("Student updated successfully!", "success")
+
+    return redirect(url_for("student_list"))
 
 
 # -----------------------------
