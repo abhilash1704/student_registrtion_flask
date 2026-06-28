@@ -8,7 +8,7 @@
 
         <h2>Add New Student</h2>
 
-        <form action="/add-student" method="POST">
+        <form action="/add-student" method="POST" enctype="multipart/form-data">
 
             <!-- Student Name -->
             <div class="form-group">
@@ -16,16 +16,14 @@
                 <label for="name">Student Name</label>
 
                 <input
-                    <input
-                type="text"
-                id="name"
-                name="name"
-                placeholder="Enter Student Name"
-                pattern="[A-Za-z ]+"
-                title="Only letters and spaces are allowed"
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Enter Student Name"
+                    pattern="[A-Za-z ]+"
+                    title="Only letters and spaces are allowed"
                     required
->
-                
+                >
 
             </div>
 
@@ -85,16 +83,26 @@
                 >
 
                     <option>ISE</option>
-
                     <option>CSE</option>
-
                     <option>ECE</option>
-
                     <option>EEE</option>
-
                     <option>ME</option>
 
                 </select>
+
+            </div>
+
+            <!-- Student Photo -->
+            <div class="form-group">
+
+                <label for="photo">Student Photo</label>
+
+                <input
+                    type="file"
+                    id="photo"
+                    name="photo"
+                    accept="image/*"
+                >
 
             </div>
 

@@ -527,3 +527,199 @@ tr:hover{
     background:#e0a800;
 
 }
+
+/* ==========================
+   Delete Button
+========================== */
+
+.delete-btn{
+
+    background:#dc3545;
+
+    color:white;
+
+    padding:8px 15px;
+
+    border-radius:5px;
+
+    text-decoration:none;
+
+    font-weight:bold;
+
+    margin-left:8px;
+
+}
+
+.delete-btn:hover{
+
+    background:#b02a37;
+
+}
+
+
+/* ==========================
+   Search Box
+========================== */
+
+.search-box{
+
+    width:100%;
+
+    margin:25px 0;
+
+    display:flex;
+
+    justify-content:center;
+
+}
+
+.search-box form{
+
+    display:flex;
+
+    gap:10px;
+
+}
+
+.search-box input{
+
+    width:300px;
+
+    padding:12px;
+
+    border:1px solid #ccc;
+
+    border-radius:6px;
+
+    font-size:16px;
+
+}
+
+.search-box button{
+
+    padding:12px 20px;
+
+    background:#007BFF;
+
+    color:white;
+
+    border:none;
+
+    border-radius:6px;
+
+    cursor:pointer;
+
+    font-size:16px;
+
+}
+
+.search-box button:hover{
+
+    background:#0056b3;
+
+}
+
+
+
+/* ==========================
+   View Button
+========================== */
+
+.view-btn{
+
+    background:#17a2b8;
+
+    color:white;
+
+    padding:8px 15px;
+
+    border-radius:5px;
+
+    text-decoration:none;
+
+    font-weight:bold;
+
+    margin-right:10px;
+
+}
+
+.view-btn:hover{
+
+    background:#117a8b;
+
+}
+
+
+
+
+/* ==========================
+   Student Profile
+========================== */
+
+.profile-section{
+
+    display:flex;
+
+    justify-content:center;
+
+    padding:40px;
+
+}
+
+.profile-card{
+
+    width:650px;
+
+    background:white;
+
+    padding:30px;
+
+    border-radius:15px;
+
+    box-shadow:0 10px 25px rgba(0,0,0,0.15);
+
+    text-align:center;
+
+}
+
+.profile-header img{
+
+    width:130px;
+
+    height:130px;
+
+    border-radius:50%;
+
+    margin-bottom:15px;
+
+}
+
+.profile-header h2{
+
+    color:#0d6efd;
+
+    margin-bottom:25px;
+
+}
+
+.profile-details{
+
+    text-align:left;
+
+    font-size:18px;
+
+    line-height:2;
+
+}
+
+.profile-buttons{
+
+    margin-top:30px;
+
+    display:flex;
+
+    justify-content:center;
+
+    gap:20px;
+
+}
