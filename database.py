@@ -47,6 +47,46 @@ def create_table():
 
 
 # ---------------------------------
+# Create Faculty Table
+# ---------------------------------
+def create_faculty_table():
+
+    connection = connect_db()
+
+    cursor = connection.cursor()
+
+    cursor.execute("""
+
+        CREATE TABLE IF NOT EXISTS faculty(
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            name TEXT NOT NULL,
+
+            faculty_id TEXT NOT NULL,
+
+            email TEXT NOT NULL,
+
+            phone TEXT NOT NULL,
+
+            department TEXT NOT NULL,
+
+            designation TEXT NOT NULL,
+
+            photo TEXT
+
+        )
+
+    """)
+
+    connection.commit()
+
+    connection.close()
+
+    print("Faculty Table Created Successfully!")
+
+
+# ---------------------------------
 # Insert Student
 # ---------------------------------
 def insert_student(name, usn, email, phone, department, photo):
@@ -67,6 +107,56 @@ def insert_student(name, usn, email, phone, department, photo):
     connection.close()
 
     print("Student Saved Successfully!")
+
+
+
+# ---------------------------------
+# Insert Faculty
+# ---------------------------------
+def insert_faculty(name, faculty_id, email, phone, department, designation, photo):
+
+    connection = connect_db()
+
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        INSERT INTO faculty
+        (name, faculty_id, email, phone, department, designation, photo)
+
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (
+        name,
+        faculty_id,
+        email,
+        phone,
+        department,
+        designation,
+        photo
+    ))
+
+    connection.commit()
+
+    connection.close()
+
+    print("Faculty Saved Successfully!")
+
+
+# ---------------------------------
+# Get All Faculty
+# ---------------------------------
+def get_faculty():
+
+    connection = connect_db()
+
+    cursor = connection.cursor()
+
+    cursor.execute("SELECT * FROM faculty")
+
+    faculty = cursor.fetchall()
+
+    connection.close()
+
+    return faculty
 
 
 # ---------------------------------
@@ -135,10 +225,6 @@ def get_student_by_id(student_id):
     connection.close()
 
     return student
-
-
-create_table()
-
 
 
 def update_student(student_id, name, usn, email, phone, department):
@@ -239,3 +325,30 @@ def total_departments():
     connection.close()
 
     return total
+
+
+# ---------------------------------
+# Get Faculty By ID
+# ---------------------------------
+def get_faculty_by_id(faculty_id):
+
+    connection = connect_db()
+
+    cursor = connection.cursor()
+
+    cursor.execute(
+        "SELECT * FROM faculty WHERE id = ?",
+        (faculty_id,)
+    )
+
+    faculty = cursor.fetchone()
+
+    connection.close()
+
+    return faculty
+
+# -----------------------------
+# Create Tables Automatically
+# -----------------------------
+create_table()
+create_faculty_table()

@@ -4,20 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Portal</title>
-
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-
 <body>
 
-    <!-- Header -->
     <header>
         <div class="container">
-
             <div class="logo">
                 <h1>🎓 Student Portal</h1>
             </div>
-
             <nav>
                 <ul>
                     <li><a href="/">Home</a></li>
@@ -25,38 +20,30 @@
                     <li><a href="/students">Students</a></li>
                     <li><a href="/add-student">Add Student</a></li>
                     <li><a href="/contact">Contact</a></li>
+                    <li><a href="/faculty">Faculty</a></li>
+                    <!-- Login link removed – home is now the login page -->
+                    <!-- Optional: show Logout only when logged in -->
+                    {% if session.admin %}
+                        <li><a href="/logout">Logout</a></li>
+                    {% endif %}
                 </ul>
             </nav>
-
         </div>
     </header>
 
-    <!-- Main Content -->
     <main>
-        <!-- Flash Messages -->
-
-{% with messages = get_flashed_messages(with_categories=true) %}
-
-    {% if messages %}
-
-        {% for category, message in messages %}
-
-            <div class="flash-message {{ category }}">
-                {{ message }}
-            </div>
-
-        {% endfor %}
-
-    {% endif %}
-
-{% endwith %}
-        {% block content %}
-        {% endblock %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
     <footer>
-        <p>© 2026 Student Portal | Built with Flask </p>
+        <p>© 2026 Student Portal | Built with Flask</p>
     </footer>
 
 </body>

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="student-section">
+
+    <div class="student-container">
+
+        <h2>Faculty List</h2>
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>Name</th>
+                    <th>Faculty ID</th>
+                    <th>Department</th>
+                    <th>Designation</th>
+                    <th>Actions</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                <tr>
+
+                    <td colspan="5" style="text-align:center;">
+
+                        <tbody>
+
+                        {% for teacher in faculty %}
+
+                        <tr>
+
+                            <td>{{ teacher[1] }}</td>
+
+                            <td>{{ teacher[2] }}</td>
+
+                            <td>{{ teacher[5] }}</td>
+
+                            <td>{{ teacher[6] }}</td>
+
+                            <td>
+
+                                <a href="{{ url_for('faculty_profile', id=teacher[0]) }}">View</a>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                        </tbody>
+
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+        <br>
+
+        <a href="/add-faculty" class="btn">
+
+            + Add Faculty
+
+        </a>
+
+    </div>
+
+</section>
+
+{% endblock %}

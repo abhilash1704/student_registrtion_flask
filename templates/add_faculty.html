@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="form-section">
+
+    <div class="form-container">
+
+        <h2>Add New Faculty</h2>
+
+        <form action="/add-faculty" method="POST" enctype="multipart/form-data">
+
+            <!-- Faculty Name -->
+            <div class="form-group">
+
+                <label for="name">Faculty Name</label>
+
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Enter Faculty Name"
+                    pattern="[A-Za-z ]+"
+                    title="Only letters and spaces are allowed"
+                    required
+                >
+
+            </div>
+
+            <!-- Faculty ID -->
+            <div class="form-group">
+
+                <label for="faculty_id">Faculty ID</label>
+
+                <input
+                    type="text"
+                    id="faculty_id"
+                    name="faculty_id"
+                    placeholder="Enter Faculty ID"
+                    required
+                >
+
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+
+                <label for="email">Email</label>
+
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="Enter Faculty Email"
+                    required
+                >
+
+            </div>
+
+            <!-- Phone -->
+            <div class="form-group">
+
+                <label for="phone">Phone Number</label>
+
+                <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    placeholder="Enter Phone Number"
+                    required
+                >
+
+            </div>
+
+            <!-- Department -->
+            <div class="form-group">
+
+                <label for="department">Department</label>
+
+                <select
+                    id="department"
+                    name="department"
+                    required
+                >
+
+                    <option value="">-- Select Department --</option>
+
+                    <option>ISE</option>
+
+                    <option>CSE</option>
+
+                    <option>ECE</option>
+
+                    <option>EEE</option>
+
+                    <option>ME</option>
+
+                </select>
+
+            </div>
+
+            <!-- Designation -->
+            <div class="form-group">
+
+                <label for="designation">Designation</label>
+
+                <input
+                    type="text"
+                    id="designation"
+                    name="designation"
+                    placeholder="Enter Designation"
+                    required
+                >
+
+            </div>
+
+            <!-- Faculty Photo -->
+            <div class="form-group">
+
+                <label for="photo">Faculty Photo</label>
+
+                <input
+                    type="file"
+                    id="photo"
+                    name="photo"
+                    accept="image/*"
+                >
+
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn">
+
+                Save Faculty
+
+            </button>
+
+        </form>
+
+    </div>
+
+</section>
+
+{% endblock %}
