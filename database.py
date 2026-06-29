@@ -301,7 +301,7 @@ def insert_marks(student_id, subject, internal1,
             internal2,
             semester_exam,
             total,
-            grade
+            grade,
 
         )
 
@@ -324,8 +324,68 @@ def insert_marks(student_id, subject, internal1,
     connection.close()
 
 
+def insert_marks(student_id, subject, internal1,
+                 internal2, semester_exam,
+                 total, grade):
+    conn = sqlite3.connect("students.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO marks (student_id, subject, internal1, internal2, semester_exam, total, grade)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (student_id, subject, internal1, internal2, semester_exam, total, grade))
+
+    conn.commit()
+    conn.close()
+
+
+# ---------------------------------
+# Create Marks Table
+# ---------------------------------
+
+def create_marks_table():
+
+    connection = connect_db()
+
+    cursor = connection.cursor()
+
+    cursor.execute("""
+
+        CREATE TABLE IF NOT EXISTS marks(
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            student_id INTEGER,
+
+            subject TEXT,
+
+            internal1 INTEGER,
+
+            internal2 INTEGER,
+
+            semester_exam INTEGER,
+
+            total INTEGER,
+
+            grade TEXT,
+
+            FOREIGN KEY(student_id) REFERENCES students(id)
+
+        )
+
+    """)
+
+    connection.commit()
+
+    connection.close()
+
+    print("Marks Table Created Successfully!")
+
+    
+
 # Create Tables Automatically
 if __name__ == "__main__":
     create_table()
     create_faculty_table()
     create_attendance_table()
+    create_marks_table()

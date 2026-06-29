@@ -29,8 +29,7 @@ from database import (
     create_attendance_table,
     get_attendance_by_date,
     get_attendance_by_student,
-    get_attendance_by_student,
-    insert_marks,# Added this import
+    insert_marks,  # Added this import
 )
 
 app = Flask(__name__)
@@ -598,7 +597,7 @@ def download_attendance_pdf(attendance_date):
         return redirect(url_for("attendance_report"))
 
 # -----------------------------
-# Student Attendance History (Added new route)
+# Student Attendance History
 # -----------------------------
 @app.route("/student-attendance/<int:student_id>")
 @login_required
@@ -618,35 +617,64 @@ def student_attendance(student_id):
     except Exception as e:
         flash(f"Error loading attendance: {str(e)}", "error")
         return redirect(url_for("student_list"))
-    
-@app.route("/add-marks", methods=["GET", "POST"])
-@login_required
-def add_marks():
-
-    students = get_students()
-
-    return render_template(
-        "add_marks.html",
-        students=students
-    )
-
 
 # -----------------------------
-# Marks Management
+# Marks Management (Fixed - Single Route)
 # -----------------------------
 @app.route("/marks", methods=["GET", "POST"])
 @login_required
 def marks():
-
     students = get_students()
 
     if request.method == "POST":
-        pass
+        try:
+            student_id = request.form.get("student_id")
+            subject = request.form.get("subject", "").strip()
+            internal1 = int(request.form.get("internal1", 0))
+            internal2 = int(request.form.get("internal2", 0))
+            semester_exam = int(request.form.get("semester_exam", 0))
 
-    return render_template(
-        "add_marks.html",
-        students=students
-    )
+            # Validate inputs
+            if not student_id or not subject:
+                flash("Student and Subject are required!", "error")
+                return redirect(url_for("marks"))
+
+            total = internal1 + internal2 + semester_exam
+
+            # Grade Calculation
+            if total >= 135:
+                grade = "A+"
+            elif total >= 120:
+                grade = "A"
+            elif total >= 105:
+                grade = "B"
+            elif total >= 90:
+                grade = "C"
+            else:
+                grade = "F"
+
+            insert_marks(
+                student_id,
+                subject,
+                internal1,
+                internal2,
+                semester_exam,
+                total,
+                grade
+            )
+
+            flash(f"Marks Added Successfully! Total: {total}, Grade: {grade}", "success")
+            return redirect(url_for("marks"))
+            
+        except ValueError as e:
+            flash(f"Invalid numeric value: {str(e)}", "error")
+        except Exception as e:
+            flash(f"Error adding marks: {str(e)}", "error")
+
+        return redirect(url_for("marks"))
+
+    return render_template("add_marks.html",students=students)
+
 # -----------------------------
 # Run Flask
 # -----------------------------
