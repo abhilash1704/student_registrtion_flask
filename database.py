@@ -225,6 +225,105 @@ def get_all_attendance():
     connection.close()
     return attendance
 
+
+
+# ---------------------------------
+# Get Attendance By Date
+# ---------------------------------
+def get_attendance_by_date(attendance_date):
+
+    connection = connect_db()
+
+    cursor = connection.cursor()
+
+    cursor.execute("""
+
+        SELECT
+            students.name,
+            students.usn,
+            attendance.status
+
+        FROM attendance
+
+        JOIN students
+
+        ON attendance.student_id = students.id
+
+        WHERE attendance.attendance_date = ?
+
+    """, (attendance_date,))
+
+    records = cursor.fetchall()
+
+    connection.close()
+
+    return records
+
+
+def get_attendance_by_student(student_id):
+
+    connection = connect_db()
+
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT *
+        FROM attendance
+        WHERE student_id = ?
+    """, (student_id,))
+
+    records = cursor.fetchall()
+
+    connection.close()
+
+    return records
+
+
+# ---------------------------------
+# Insert Marks
+# ---------------------------------
+
+def insert_marks(student_id, subject, internal1,
+                 internal2, semester_exam,
+                 total, grade):
+
+    connection = connect_db()
+
+    cursor = connection.cursor()
+
+    cursor.execute("""
+
+        INSERT INTO marks(
+
+            student_id,
+            subject,
+            internal1,
+            internal2,
+            semester_exam,
+            total,
+            grade
+
+        )
+
+        VALUES(?,?,?,?,?,?,?)
+
+    """, (
+
+        student_id,
+        subject,
+        internal1,
+        internal2,
+        semester_exam,
+        total,
+        grade
+
+    ))
+
+    connection.commit()
+
+    connection.close()
+
+
 # Create Tables Automatically
 if __name__ == "__main__":
     create_table()

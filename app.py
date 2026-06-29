@@ -1,8 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file
 from functools import wraps
 from werkzeug.utils import secure_filename
 import os
 import openpyxl
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from datetime import datetime
 
 # Import all needed functions from database
 from database import (
@@ -20,15 +24,32 @@ from database import (
     connect_db,
     save_attendance,
     total_faculty,
-    create_table,           # Added
-    create_faculty_table,   # Added
-    create_attendance_table # Added
+    create_table,
+    create_faculty_table,
+    create_attendance_table,
+    get_attendance_by_date,
+    get_attendance_by_student,
+    get_attendance_by_student,
+    insert_marks,# Added this import
 )
 
 app = Flask(__name__)
 
 # Secret Key
 app.secret_key = "studentportal123"
+
+# Upload folder configuration
+UPLOAD_FOLDER = os.path.join('static', 'uploads')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'xlsx', 'xls'}
+
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # -----------------------------
 # INITIALIZE DATABASE ON STARTUP
@@ -63,8 +84,8 @@ def home():
         return redirect(url_for("dashboard"))
     
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "").strip()
 
         if username == "admin" and password == "admin123":
             session["admin"] = username
@@ -81,9 +102,15 @@ def home():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    total = total_students()
-    departments = total_departments()
-    faculty_count = total_faculty()
+    try:
+        total = total_students()
+        departments = total_departments()
+        faculty_count = total_faculty()
+    except Exception as e:
+        flash(f"Error loading dashboard: {str(e)}", "error")
+        total = 0
+        departments = 0
+        faculty_count = 0
 
     return render_template(
         "index.html",
@@ -115,12 +142,16 @@ def about():
 @app.route("/students")
 @login_required
 def student_list():
-    search = request.args.get("search")
+    search = request.args.get("search", "").strip()
 
-    if search:
-        students = search_students(search)
-    else:
-        students = get_students()
+    try:
+        if search:
+            students = search_students(search)
+        else:
+            students = get_students()
+    except Exception as e:
+        flash(f"Error fetching students: {str(e)}", "error")
+        students = []
 
     return render_template(
         "students.html",
@@ -133,7 +164,11 @@ def student_list():
 @app.route("/faculty")
 @login_required
 def faculty_list():
-    faculty = get_faculty()
+    try:
+        faculty = get_faculty()
+    except Exception as e:
+        flash(f"Error fetching faculty: {str(e)}", "error")
+        faculty = []
 
     return render_template(
         "faculty.html",
@@ -147,35 +182,49 @@ def faculty_list():
 @login_required
 def add_faculty():
     if request.method == "POST":
-        name = request.form["name"]
-        faculty_id = request.form["faculty_id"]
-        email = request.form["email"]
-        phone = request.form["phone"]
-        department = request.form["department"]
-        designation = request.form["designation"]
+        try:
+            name = request.form.get("name", "").strip()
+            faculty_id = request.form.get("faculty_id", "").strip()
+            email = request.form.get("email", "").strip()
+            phone = request.form.get("phone", "").strip()
+            department = request.form.get("department", "").strip()
+            designation = request.form.get("designation", "").strip()
 
-        photo = request.files["photo"]
-        photo_filename = ""
+            # Validate required fields
+            if not all([name, faculty_id, email, department]):
+                flash("Name, Faculty ID, Email, and Department are required!", "error")
+                return render_template("add_faculty.html")
 
-        if photo.filename != "":
-            photo_filename = secure_filename(photo.filename)
-            uploads_dir = os.path.join("static", "uploads")
-            if not os.path.exists(uploads_dir):
-                os.makedirs(uploads_dir)
-            photo.save(os.path.join(uploads_dir, photo_filename))
+            photo = request.files.get("photo")
+            photo_filename = ""
 
-        insert_faculty(
-            name,
-            faculty_id,
-            email,
-            phone,
-            department,
-            designation,
-            photo_filename
-        )
+            if photo and photo.filename != "":
+                if allowed_file(photo.filename):
+                    photo_filename = secure_filename(photo.filename)
+                    # Add timestamp to avoid filename conflicts
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_")
+                    photo_filename = timestamp + photo_filename
+                    photo.save(os.path.join(app.config['UPLOAD_FOLDER'], photo_filename))
+                else:
+                    flash("Invalid file type! Allowed: png, jpg, jpeg, gif", "error")
+                    return render_template("add_faculty.html")
 
-        flash("Faculty added successfully!", "success")
-        return redirect(url_for("faculty_list"))
+            insert_faculty(
+                name,
+                faculty_id,
+                email,
+                phone,
+                department,
+                designation,
+                photo_filename
+            )
+
+            flash("Faculty added successfully!", "success")
+            return redirect(url_for("faculty_list"))
+            
+        except Exception as e:
+            flash(f"Error adding faculty: {str(e)}", "error")
+            return render_template("add_faculty.html")
 
     return render_template("add_faculty.html")
 
@@ -185,14 +234,18 @@ def add_faculty():
 @app.route("/student/<int:id>")
 @login_required
 def student_profile(id):
-    student = get_student_by_id(id)
-    if student is None:
-        flash("Student not found!", "error")
+    try:
+        student = get_student_by_id(id)
+        if student is None:
+            flash("Student not found!", "error")
+            return redirect(url_for("student_list"))
+        return render_template(
+            "student_profile.html",
+            student=student
+        )
+    except Exception as e:
+        flash(f"Error loading student profile: {str(e)}", "error")
         return redirect(url_for("student_list"))
-    return render_template(
-        "student_profile.html",
-        student=student
-    )
 
 # -----------------------------
 # Edit Student Page (Protected)
@@ -200,14 +253,18 @@ def student_profile(id):
 @app.route("/edit-student/<int:id>")
 @login_required
 def edit_student(id):
-    student = get_student_by_id(id)
-    if student is None:
-        flash("Student not found!", "error")
+    try:
+        student = get_student_by_id(id)
+        if student is None:
+            flash("Student not found!", "error")
+            return redirect(url_for("student_list"))
+        return render_template(
+            "edit_student.html",
+            student=student
+        )
+    except Exception as e:
+        flash(f"Error loading student: {str(e)}", "error")
         return redirect(url_for("student_list"))
-    return render_template(
-        "edit_student.html",
-        student=student
-    )
 
 # -----------------------------
 # Update Student (Protected)
@@ -215,23 +272,31 @@ def edit_student(id):
 @app.route("/update-student/<int:id>", methods=["POST"])
 @login_required
 def update_student_route(id):
-    name = request.form["name"]
-    usn = request.form["usn"]
-    email = request.form["email"]
-    phone = request.form["phone"]
-    department = request.form["department"]
+    try:
+        name = request.form.get("name", "").strip()
+        usn = request.form.get("usn", "").strip()
+        email = request.form.get("email", "").strip()
+        phone = request.form.get("phone", "").strip()
+        department = request.form.get("department", "").strip()
 
-    update_student(
-        id,
-        name,
-        usn,
-        email,
-        phone,
-        department
-    )
+        if not name:
+            flash("Name is required!", "error")
+            return redirect(url_for("edit_student", id=id))
 
-    flash("Student updated successfully!", "success")
-    return redirect(url_for("student_list"))
+        update_student(
+            id,
+            name,
+            usn,
+            email,
+            phone,
+            department
+        )
+
+        flash("Student updated successfully!", "success")
+        return redirect(url_for("student_list"))
+    except Exception as e:
+        flash(f"Error updating student: {str(e)}", "error")
+        return redirect(url_for("edit_student", id=id))
 
 # -----------------------------
 # Upload Students
@@ -240,54 +305,62 @@ def update_student_route(id):
 @login_required
 def upload_students():
     if request.method == "POST":
-        if "excel_file" not in request.files:
-            flash("No file selected!", "error")
-            return redirect(url_for("upload_students"))
-            
-        excel_file = request.files["excel_file"]
-        
-        if excel_file.filename == "":
-            flash("No file selected!", "error")
-            return redirect(url_for("upload_students"))
-
-        uploads_dir = os.path.join("static", "uploads")
-        if not os.path.exists(uploads_dir):
-            os.makedirs(uploads_dir)
-            
-        file_path = os.path.join(uploads_dir, secure_filename(excel_file.filename))
-        excel_file.save(file_path)
-
         try:
-            workbook = openpyxl.load_workbook(file_path)
-            sheet = workbook.active
+            if "excel_file" not in request.files:
+                flash("No file selected!", "error")
+                return redirect(url_for("upload_students"))
+                
+            excel_file = request.files["excel_file"]
+            
+            if excel_file.filename == "":
+                flash("No file selected!", "error")
+                return redirect(url_for("upload_students"))
 
-            for row in sheet.iter_rows(min_row=2, values_only=True):
-                if row[0] is None:
-                    continue
-                    
-                name = row[0]
-                usn = row[1]
-                email = row[2]
-                phone = str(row[3]) if row[3] else ""
-                department = row[4]
+            if not allowed_file(excel_file.filename):
+                flash("Invalid file type! Please upload an Excel file (.xlsx or .xls)", "error")
+                return redirect(url_for("upload_students"))
+                
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(excel_file.filename))
+            excel_file.save(file_path)
 
-                insert_student(
-                    name,
-                    usn,
-                    email,
-                    phone,
-                    department,
-                    ""
-                )
+            try:
+                workbook = openpyxl.load_workbook(file_path)
+                sheet = workbook.active
 
-            flash("Students imported successfully!", "success")
+                imported_count = 0
+                for row in sheet.iter_rows(min_row=2, values_only=True):
+                    if row[0] is None or str(row[0]).strip() == "":
+                        continue
+                        
+                    name = str(row[0]).strip()
+                    usn = str(row[1]).strip() if row[1] else ""
+                    email = str(row[2]).strip() if row[2] else ""
+                    phone = str(row[3]).strip() if row[3] else ""
+                    department = str(row[4]).strip() if row[4] else ""
+
+                    insert_student(
+                        name,
+                        usn,
+                        email,
+                        phone,
+                        department,
+                        ""
+                    )
+                    imported_count += 1
+
+                flash(f"Successfully imported {imported_count} students!", "success")
+                
+            except Exception as e:
+                flash(f"Error importing students: {str(e)}", "error")
+            finally:
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+
+            return redirect(url_for("student_list"))
+            
         except Exception as e:
-            flash(f"Error importing students: {str(e)}", "error")
-        finally:
-            if os.path.exists(file_path):
-                os.remove(file_path)
-
-        return redirect(url_for("student_list"))
+            flash(f"Error processing file: {str(e)}", "error")
+            return redirect(url_for("upload_students"))
 
     return render_template("upload_students.html")
 
@@ -297,8 +370,11 @@ def upload_students():
 @app.route("/delete-student/<int:id>")
 @login_required
 def delete_student_route(id):
-    delete_student(id)
-    flash("Student deleted successfully!", "success")
+    try:
+        delete_student(id)
+        flash("Student deleted successfully!", "success")
+    except Exception as e:
+        flash(f"Error deleting student: {str(e)}", "error")
     return redirect(url_for("student_list"))
 
 # -----------------------------
@@ -316,38 +392,50 @@ def contact():
 @login_required
 def add_student():
     if request.method == "POST":
-        name = request.form["name"]
+        try:
+            name = request.form.get("name", "").strip()
 
-        if not name.replace(" ", "").isalpha():
-            flash("Student name should contain only letters.", "error")
+            if not name:
+                flash("Student name is required.", "error")
+                return redirect(url_for("add_student"))
+
+            if not name.replace(" ", "").isalpha():
+                flash("Student name should contain only letters.", "error")
+                return redirect(url_for("add_student"))
+
+            usn = request.form.get("usn", "").strip()
+            email = request.form.get("email", "").strip()
+            phone = request.form.get("phone", "").strip()
+            department = request.form.get("department", "").strip()
+            
+            photo = request.files.get("photo")
+            photo_filename = ""
+
+            if photo and photo.filename != "":
+                if allowed_file(photo.filename):
+                    photo_filename = secure_filename(photo.filename)
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_")
+                    photo_filename = timestamp + photo_filename
+                    photo.save(os.path.join(app.config['UPLOAD_FOLDER'], photo_filename))
+                else:
+                    flash("Invalid file type! Allowed: png, jpg, jpeg, gif", "error")
+                    return redirect(url_for("add_student"))
+
+            insert_student(
+                name,
+                usn,
+                email,
+                phone,
+                department,
+                photo_filename
+            )
+
+            flash(f"Student '{name}' added successfully!", "success")
+            return redirect(url_for("student_list"))
+            
+        except Exception as e:
+            flash(f"Error adding student: {str(e)}", "error")
             return redirect(url_for("add_student"))
-
-        usn = request.form["usn"]
-        email = request.form["email"]
-        phone = request.form["phone"]
-        department = request.form["department"]
-        
-        photo = request.files["photo"]
-        photo_filename = ""
-
-        if photo.filename != "":
-            photo_filename = secure_filename(photo.filename)
-            uploads_dir = os.path.join("static", "uploads")
-            if not os.path.exists(uploads_dir):
-                os.makedirs(uploads_dir)
-            photo.save(os.path.join(uploads_dir, photo_filename))
-
-        insert_student(
-            name,
-            usn,
-            email,
-            phone,
-            department,
-            photo_filename
-        )
-
-        flash(f"Student '{name}' added successfully!", "success")
-        return redirect(url_for("student_list"))
 
     return render_template("add_student.html")
 
@@ -357,14 +445,18 @@ def add_student():
 @app.route("/faculty/<int:id>")
 @login_required
 def faculty_profile(id):
-    faculty = get_faculty_by_id(id)
-    if faculty is None:
-        flash("Faculty not found!", "error")
+    try:
+        faculty = get_faculty_by_id(id)
+        if faculty is None:
+            flash("Faculty not found!", "error")
+            return redirect(url_for("faculty_list"))
+        return render_template(
+            "faculty_profile.html",
+            faculty=faculty
+        )
+    except Exception as e:
+        flash(f"Error loading faculty profile: {str(e)}", "error")
         return redirect(url_for("faculty_list"))
-    return render_template(
-        "faculty_profile.html",
-        faculty=faculty
-    )
 
 # -----------------------------
 # Attendance Page
@@ -373,38 +465,190 @@ def faculty_profile(id):
 @login_required
 def attendance():
     if request.method == "POST":
-        attendance_date = request.form.get("attendance_date")
-        
-        if not attendance_date:
-            flash("Please select a date!", "error")
-            return redirect(url_for("attendance"))
-        
-        students = get_students()
-        saved_count = 0
-        
-        for student in students:
-            student_id = student[0]
-            status = request.form.get(f"attendance_{student_id}")
+        try:
+            attendance_date = request.form.get("attendance_date", "").strip()
             
-            if status and status in ["Present", "Absent"]:
-                save_attendance(student_id, attendance_date, status)
-                saved_count += 1
-        
-        if saved_count > 0:
-            flash(f"Attendance saved successfully for {saved_count} students!", "success")
-        else:
-            flash("No attendance records to save!", "warning")
+            if not attendance_date:
+                flash("Please select a date!", "error")
+                return redirect(url_for("attendance"))
+            
+            students = get_students()
+            saved_count = 0
+            
+            for student in students:
+                student_id = student[0]
+                status = request.form.get(f"attendance_{student_id}")
+                
+                if status and status in ["Present", "Absent"]:
+                    save_attendance(student_id, attendance_date, status)
+                    saved_count += 1
+            
+            if saved_count > 0:
+                flash(f"Attendance saved successfully for {saved_count} students!", "success")
+            else:
+                flash("No attendance records to save!", "warning")
+                
+        except Exception as e:
+            flash(f"Error saving attendance: {str(e)}", "error")
             
         return redirect(url_for("attendance"))
 
-    students = get_students()
+    try:
+        students = get_students()
+        today_date = datetime.now().strftime("%Y-%m-%d")
+        return render_template(
+            "attendance.html",
+            students=students,
+            today_date=today_date
+        )
+    except Exception as e:
+        flash(f"Error loading attendance page: {str(e)}", "error")
+        return render_template("attendance.html", students=[], today_date="")
+
+# -----------------------------
+# Attendance Report
+# -----------------------------
+@app.route("/attendance-report", methods=["GET", "POST"])
+@login_required
+def attendance_report():
+    records = []
+    attendance_date = ""
+
+    if request.method == "POST":
+        try:
+            attendance_date = request.form.get("attendance_date", "").strip()
+            if attendance_date:
+                records = get_attendance_by_date(attendance_date)
+            else:
+                flash("Please select a date!", "warning")
+        except Exception as e:
+            flash(f"Error fetching attendance: {str(e)}", "error")
+
     return render_template(
-        "attendance.html",
+        "attendance_report.html",
+        records=records,
+        attendance_date=attendance_date
+    )
+
+# -----------------------------
+# Download Attendance PDF
+# -----------------------------
+@app.route("/download-attendance-pdf/<attendance_date>")
+@login_required
+def download_attendance_pdf(attendance_date):
+    try:
+        records = get_attendance_by_date(attendance_date)
+        
+        if not records:
+            flash("No attendance records found for this date!", "warning")
+            return redirect(url_for("attendance_report"))
+
+        filename = f"Attendance_Report_{attendance_date}.pdf"
+        
+        # Create PDF in a temporary location
+        pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        
+        pdf = SimpleDocTemplate(pdf_path)
+        elements = []
+        styles = getSampleStyleSheet()
+        
+        # Title
+        title = Paragraph(
+            f"<b>Student Attendance Report</b><br/>Date: {attendance_date}",
+            styles["Heading1"]
+        )
+        elements.append(title)
+        elements.append(Paragraph("<br/>", styles["Normal"]))
+        
+        # Table data
+        data = [["Sl No", "Name", "USN", "Status"]]
+        
+        for idx, record in enumerate(records, 1):
+            data.append([
+                str(idx),
+                record[0],  # name
+                record[1],  # usn
+                record[2]   # status
+            ])
+        
+        table = Table(data)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.blue),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+            ('GRID', (0,0), (-1,-1), 1, colors.black),
+            ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+            ('BACKGROUND', (0,1), (-1,-1), colors.beige),
+            ('BOTTOMPADDING', (0,0), (-1,0), 12),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0,0), (-1,0), 12),
+            ('FONTSIZE', (0,1), (-1,-1), 10),
+        ]))
+        
+        elements.append(table)
+        pdf.build(elements)
+        
+        return send_file(
+            pdf_path,
+            as_attachment=True,
+            download_name=filename
+        )
+        
+    except Exception as e:
+        flash(f"Error generating PDF: {str(e)}", "error")
+        return redirect(url_for("attendance_report"))
+
+# -----------------------------
+# Student Attendance History (Added new route)
+# -----------------------------
+@app.route("/student-attendance/<int:student_id>")
+@login_required
+def student_attendance(student_id):
+    try:
+        student = get_student_by_id(student_id)
+        if student is None:
+            flash("Student not found!", "error")
+            return redirect(url_for("student_list"))
+            
+        attendance_records = get_attendance_by_student(student_id)
+        return render_template(
+            "student_attendance.html",
+            student=student,
+            records=attendance_records
+        )
+    except Exception as e:
+        flash(f"Error loading attendance: {str(e)}", "error")
+        return redirect(url_for("student_list"))
+    
+@app.route("/add-marks", methods=["GET", "POST"])
+@login_required
+def add_marks():
+
+    students = get_students()
+
+    return render_template(
+        "add_marks.html",
         students=students
     )
 
+
+# -----------------------------
+# Marks Management
+# -----------------------------
+@app.route("/marks", methods=["GET", "POST"])
+@login_required
+def marks():
+
+    students = get_students()
+
+    if request.method == "POST":
+        pass
+
+    return render_template(
+        "add_marks.html",
+        students=students
+    )
 # -----------------------------
 # Run Flask
 # -----------------------------
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)

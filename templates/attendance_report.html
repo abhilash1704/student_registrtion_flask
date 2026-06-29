@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="student-container">
+
+    <h2>📊 Attendance Report</h2>
+
+    <form method="POST">
+
+        <label>Select Date:</label>
+
+        <input type="date" name="attendance_date" required>
+
+        <button type="submit" class="btn">
+            Search
+        </button>
+
+    </form>
+
+    <br>
+
+    {% if records %}
+
+    <table>
+
+        <thead>
+
+            <tr>
+                <th>Name</th>
+                <th>USN</th>
+                <th>Status</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for record in records %}
+
+            <tr>
+
+                <td>{{ record[0] }}</td>
+                <td>{{ record[1] }}</td>
+                <td>{{ record[2] }}</td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    {% else %}
+
+        <p style="text-align:center;">
+            No attendance records found.
+        </p>
+
+    {% endif %}
+
+</div>
+
+{% if records %}
+
+<br>
+
+<a href="{{ url_for('download_attendance_pdf', attendance_date=request.form['attendance_date']) }}"
+   class="btn">
+
+    📄 Report PDF
+
+</a>
+
+{% endif %}
+
+{% endblock %}

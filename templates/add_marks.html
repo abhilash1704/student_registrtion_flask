@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="student-section">
+
+    <div class="student-container">
+
+        <h2>📝 Add Student Marks</h2>
+
+        <form method="POST">
+
+            <!-- Select Student -->
+            <div class="form-group">
+
+                <label>Select Student</label>
+
+                <select name="student_id" required>
+
+                    <option value="">-- Select Student --</option>
+
+                    {% for student in students %}
+
+                    <option value="{{ student[0] }}">
+                        {{ student[1] }} ({{ student[2] }})
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+            <!-- Subject -->
+            <div class="form-group">
+
+                <label>Subject</label>
+
+                <input
+                    type="text"
+                    name="subject"
+                    placeholder="Enter Subject Name"
+                    required
+                >
+
+            </div>
+
+            <!-- Internal 1 -->
+            <div class="form-group">
+
+                <label>Internal 1 Marks</label>
+
+                <input
+                    type="number"
+                    name="internal1"
+                    min="0"
+                    max="30"
+                    required
+                >
+
+            </div>
+
+            <!-- Internal 2 -->
+            <div class="form-group">
+
+                <label>Internal 2 Marks</label>
+
+                <input
+                    type="number"
+                    name="internal2"
+                    min="0"
+                    max="30"
+                    required
+                >
+
+            </div>
+
+            <!-- Semester Exam -->
+            <div class="form-group">
+
+                <label>Semester Exam Marks</label>
+
+                <input
+                    type="number"
+                    name="semester_exam"
+                    min="0"
+                    max="100"
+                    required
+                >
+
+            </div>
+
+            <br>
+
+            <button type="submit" class="btn">
+
+                💾 Save Marks
+
+            </button>
+
+        </form>
+
+    </div>
+
+</section>
+
+{% endblock %}
