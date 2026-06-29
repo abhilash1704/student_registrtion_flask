@@ -723,3 +723,126 @@ tr:hover{
     gap:20px;
 
 }
+
+
+/* ===========================
+   Dashboard
+=========================== */
+
+.dashboard{
+    width:90%;
+    margin:40px auto;
+}
+
+.dashboard h2{
+    text-align:center;
+    margin-bottom:30px;
+}
+
+.dashboard-cards{
+    display:flex;
+    gap:20px;
+    justify-content:center;
+    flex-wrap:wrap;
+}
+
+.card{
+    width:250px;
+    background:white;
+    border-radius:12px;
+    padding:25px;
+    text-align:center;
+    box-shadow:0 0 10px rgba(0,0,0,.1);
+}
+
+.card h3{
+    color:#555;
+}
+
+.card h1{
+    font-size:45px;
+    color:#0d6efd;
+}
+
+
+/* ==========================
+   Attendance Page
+========================== */
+
+.student-container{
+
+    width:90%;
+
+    margin:40px auto;
+
+    background:#fff;
+
+    padding:30px;
+
+    border-radius:12px;
+
+    box-shadow:0 5px 15px rgba(0,0,0,.1);
+
+}
+
+.student-container h2{
+
+    text-align:center;
+
+    color:#0d6efd;
+
+    margin-bottom:25px;
+
+}
+
+.student-container table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+}
+
+.student-container table th{
+
+    background:#0d6efd;
+
+    color:white;
+
+    padding:15px;
+
+}
+
+.student-container table td{
+
+    padding:15px;
+
+    text-align:center;
+
+    border-bottom:1px solid #ddd;
+
+}
+
+.student-container select{
+
+    padding:8px;
+
+    border-radius:6px;
+
+}
+
+.student-container input[type="date"]{
+
+    padding:10px;
+
+    width:220px;
+
+    margin-bottom:20px;
+
+}
+
+.student-container .btn{
+
+    margin-top:20px;
+
+}

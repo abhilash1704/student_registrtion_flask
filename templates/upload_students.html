@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="form-section">
+
+    <div class="form-container">
+
+        <h2>📤 Upload Student Excel File</h2>
+
+        <form action="/upload-students"
+              method="POST"
+              enctype="multipart/form-data">
+
+            <div class="form-group">
+
+                <label>Select Excel File</label>
+
+                <input
+                    type="file"
+                    name="excel_file"
+                    accept=".xlsx"
+                    required>
+
+            </div>
+
+            <button class="btn">
+
+                Upload Students
+
+            </button>
+
+        </form>
+
+    </div>
+
+</section>
+
+{% endblock %}
