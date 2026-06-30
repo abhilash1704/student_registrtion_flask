@@ -158,76 +158,6 @@ def student_list():
     )
 
 # -----------------------------
-# Faculty List (Protected)
-# -----------------------------
-@app.route("/faculty")
-@login_required
-def faculty_list():
-    try:
-        faculty = get_faculty()
-    except Exception as e:
-        flash(f"Error fetching faculty: {str(e)}", "error")
-        faculty = []
-
-    return render_template(
-        "faculty.html",
-        faculty=faculty
-    )
-
-# -----------------------------
-# Add Faculty (Protected)
-# -----------------------------
-@app.route("/add-faculty", methods=["GET", "POST"])
-@login_required
-def add_faculty():
-    if request.method == "POST":
-        try:
-            name = request.form.get("name", "").strip()
-            faculty_id = request.form.get("faculty_id", "").strip()
-            email = request.form.get("email", "").strip()
-            phone = request.form.get("phone", "").strip()
-            department = request.form.get("department", "").strip()
-            designation = request.form.get("designation", "").strip()
-
-            # Validate required fields
-            if not all([name, faculty_id, email, department]):
-                flash("Name, Faculty ID, Email, and Department are required!", "error")
-                return render_template("add_faculty.html")
-
-            photo = request.files.get("photo")
-            photo_filename = ""
-
-            if photo and photo.filename != "":
-                if allowed_file(photo.filename):
-                    photo_filename = secure_filename(photo.filename)
-                    # Add timestamp to avoid filename conflicts
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_")
-                    photo_filename = timestamp + photo_filename
-                    photo.save(os.path.join(app.config['UPLOAD_FOLDER'], photo_filename))
-                else:
-                    flash("Invalid file type! Allowed: png, jpg, jpeg, gif", "error")
-                    return render_template("add_faculty.html")
-
-            insert_faculty(
-                name,
-                faculty_id,
-                email,
-                phone,
-                department,
-                designation,
-                photo_filename
-            )
-
-            flash("Faculty added successfully!", "success")
-            return redirect(url_for("faculty_list"))
-            
-        except Exception as e:
-            flash(f"Error adding faculty: {str(e)}", "error")
-            return render_template("add_faculty.html")
-
-    return render_template("add_faculty.html")
-
-# -----------------------------
 # Student Profile (Protected)
 # -----------------------------
 @app.route("/student/<int:id>")
@@ -438,24 +368,6 @@ def add_student():
 
     return render_template("add_student.html")
 
-# -----------------------------
-# Faculty Profile (Protected)
-# -----------------------------
-@app.route("/faculty/<int:id>")
-@login_required
-def faculty_profile(id):
-    try:
-        faculty = get_faculty_by_id(id)
-        if faculty is None:
-            flash("Faculty not found!", "error")
-            return redirect(url_for("faculty_list"))
-        return render_template(
-            "faculty_profile.html",
-            faculty=faculty
-        )
-    except Exception as e:
-        flash(f"Error loading faculty profile: {str(e)}", "error")
-        return redirect(url_for("faculty_list"))
 
 # -----------------------------
 # Attendance Page
@@ -674,6 +586,8 @@ def marks():
         return redirect(url_for("marks"))
 
     return render_template("add_marks.html",students=students)
+
+
 
 # -----------------------------
 # Run Flask
