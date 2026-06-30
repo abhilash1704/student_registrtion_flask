@@ -56,61 +56,6 @@ student-portal/
 └── uploads/
 ```
 
----
-
-## ▶️ How to Run
-
-1. Clone the repository
-
-```bash
-git clone https://github.com/your-username/student-portal.git
-```
-
-2. Go to the project folder
-
-```bash
-cd student-portal
-```
-
-3. Create a virtual environment
-
-```bash
-python -m venv venv
-```
-
-4. Activate the virtual environment
-
-**Windows**
-
-```bash
-venv\Scripts\activate
-```
-
-**Linux / macOS**
-
-```bash
-source venv/bin/activate
-```
-
-5. Install the required packages
-
-```bash
-pip install -r requirements.txt
-```
-
-6. Run the application
-
-```bash
-python app.py
-```
-
-7. Open your browser
-
-```text
-http://127.0.0.1:5000
-```
-
----
 
 ## 📌 Future Enhancements
 
