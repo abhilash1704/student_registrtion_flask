@@ -8,19 +8,19 @@
 
         <div class="profile-header">
 
-                    
-        {% if student[6] %}
+            {% if student[7] %}
 
-        <img src="{{ url_for('static', filename='uploads/' + student[6]) }}" alt="Student">
+                <img src="{{ url_for('static', filename='uploads/' + student[7]) }}"
+                     alt="Student">
 
-        {% else %}
+            {% else %}
 
-        <img src="{{ url_for('static', filename='images/student.png') }}" alt="Student">
+                <img src="{{ url_for('static', filename='images/student.png') }}"
+                     alt="Student">
 
-        {% endif %}
+            {% endif %}
 
-
-            <h2>Student Profile</h2>
+            <h2>👤 My Profile</h2>
 
         </div>
 
@@ -30,29 +30,22 @@
 
             <p><strong>USN :</strong> {{ student[2] }}</p>
 
-            <p><strong>Email :</strong> {{ student[3] }}</p>
+            <p><strong>Email :</strong> {{ student[4] }}</p>
 
-            <p><strong>Phone :</strong> {{ student[4] }}</p>
+            <p><strong>Phone :</strong> {{ student[5] }}</p>
 
-            <p><strong>Department :</strong> {{ student[5] }}</p>
+            <p><strong>Department :</strong> {{ student[6] }}</p>
 
         </div>
 
         <div class="profile-buttons">
 
-            <a href="/edit-student/{{ student[0] }}" class="edit-btn">
-
-                ✏ Edit Profile
-
+            <a href="/change-password" class="edit-btn">
+                🔒 Change Password
             </a>
 
-            <a
-                href="/delete-student/{{ student[0] }}"
-                class="delete-btn"
-                onclick="return confirm('Delete this student?')">
-
-                🗑 Delete
-
+            <a href="/student-dashboard" class="delete-btn">
+                ⬅ Back to Dashboard
             </a>
 
         </div>

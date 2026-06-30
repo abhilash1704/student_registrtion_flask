@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+
+    <h2 style="text-align:center;">
+        📅 My Attendance
+    </h2>
+
+    <br>
+
+    <table class="student-table">
+
+        <tr>
+            <th>Date</th>
+            <th>Status</th>
+        </tr>
+
+        {% for record in records %}
+
+        <tr>
+
+            <td>{{ record[0] }}</td>
+
+            <td>
+
+                {% if record[1] == "Present" %}
+
+                    <span style="color:green;font-weight:bold;">
+                        Present
+                    </span>
+
+                {% else %}
+
+                    <span style="color:red;font-weight:bold;">
+                        Absent
+                    </span>
+
+                {% endif %}
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+</div>
+
+{% endblock %}

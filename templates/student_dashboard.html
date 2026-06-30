@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="hero">
+
+    <div class="hero-content">
+
+        <h2>🎓 Welcome {{ session.student_name }}</h2>
+
+        <h3>Student Dashboard</h3>
+
+        <p>
+            Welcome to your student portal.
+        </p>
+
+        <div class="hero-buttons">
+
+            <a href="{{ url_for('my_profile') }}" class="btn">
+                👤 My Profile
+            </a>
+            <a href="{{ url_for('my_attendance') }}" class="btn">
+                📅 My Attendance
+            </a>
+
+        <a href="{{ url_for('my_marks') }}" class="btn">
+            📝 My Marks
+        </a>
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

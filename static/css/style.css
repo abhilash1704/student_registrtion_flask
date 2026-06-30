@@ -846,3 +846,57 @@ tr:hover{
     margin-top:20px;
 
 }
+
+
+/* ==========================
+   Header
+========================== */
+
+header{
+    background:#1f6feb;
+    color:white;
+    padding:15px 0;
+}
+
+.container{
+    width:90%;
+    margin:auto;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.logo h1{
+    margin:0;
+}
+
+nav ul{
+    list-style:none;
+    display:flex;
+    align-items:center;
+    gap:25px;
+    margin:0;
+    padding:0;
+}
+
+nav ul li{
+    display:flex;
+    align-items:center;
+}
+
+nav ul li a{
+    color:white;
+    text-decoration:none;
+    font-weight:600;
+    transition:0.3s;
+}
+
+nav ul li a:hover{
+    color:#ffe082;
+}
+
+.student-name{
+    color:white;
+    font-weight:bold;
+    font-size:17px;
+}

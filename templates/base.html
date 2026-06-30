@@ -1,94 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Student Portal</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
 </head>
 
 <body>
 
-    <!-- ==========================
-         Header
-    =========================== -->
-    <header>
+<header>
 
-        <div class="container">
+    <div class="container">
 
-            <div class="logo">
-                <h1>🎓 Student Portal</h1>
-            </div>
+        <div class="logo">
 
-            {% if session.admin %}
-
-            <nav>
-
-                <ul>
-
-                    <li><a href="{{ url_for('dashboard') }}">Home</a></li>
-
-                    <li><a href="{{ url_for('student_list') }}">Students</a></li>
-
-                    <li><a href="{{ url_for('add_student') }}">Add Student</a></li>
-
-                    <li><a href="{{ url_for('upload_students') }}">File</a></li>
-
-                    <li><a href="{{ url_for('attendance') }}">Attendance</a></li>
-
-                    <li><a href="{{ url_for('attendance_report') }}"> Report</a></li>
-
-                    <li><a href="{{ url_for('logout') }}">Logout</a></li>
-
-                </ul>
-
-            </nav>
-
-            {% endif %}
+            <h1>🎓 Student Portal</h1>
 
         </div>
 
-    </header>
+        <nav>
 
-    <!-- ==========================
-         Main Content
-    =========================== -->
+            <ul>
 
-    <main>
+                <!-- ========================= -->
+                <!-- Admin Navigation -->
+                <!-- ========================= -->
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if session.admin %}
 
-            {% if messages %}
+                    <li>
+                        <a href="{{ url_for('dashboard') }}">
+                            🏠 Dashboard
+                        </a>
+                    </li>
 
-                {% for category, message in messages %}
+                    <li>
+                        <a href="{{ url_for('student_list') }}">
+                            👨‍🎓 Students
+                        </a>
+                    </li>
 
-                    <div class="flash-message {{ category }}">
+                    <li>
+                        <a href="{{ url_for('add_student') }}">
+                            ➕ Add Student
+                        </a>
+                    </li>
 
-                        {{ message }}
+                    <li>
+                        <a href="{{ url_for('upload_students') }}">
+                            📂 Upload
+                        </a>
+                    </li>
 
-                    </div>
+                    <li>
+                        <a href="{{ url_for('attendance') }}">
+                            📅 Attendance
+                        </a>
+                    </li>
 
-                {% endfor %}
+                    <li>
+                        <a href="{{ url_for('attendance_report') }}">
+                            📄 Reports
+                        </a>
+                    </li>
 
-            {% endif %}
+                    <li>
+                        <a href="{{ url_for('logout') }}">
+                            🚪 Logout
+                        </a>
+                    </li>
 
-        {% endwith %}
+                <!-- ========================= -->
+                <!-- Student Navigation -->
+                <!-- ========================= -->
 
-        {% block content %}
-        {% endblock %}
+                {% elif session.student_id %}
 
-    </main>
+                    <li class="student-name">
 
-    <!-- ==========================
-         Footer
-    =========================== -->
+                        👤 {{ session.student_name }}
 
-    <footer>
+                    </li>
 
-        <p>© 2026 Student Portal | Built with Flask</p>
+                    <li>
 
-    </footer>
+                        <a href="{{ url_for('logout') }}">
+                            🚪 Logout
+                        </a>
+
+                    </li>
+
+                {% endif %}
+
+            </ul>
+
+        </nav>
+
+    </div>
+
+</header>
+
+<main>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+
+        {% if messages %}
+
+            {% for category, message in messages %}
+
+                <div class="flash-message {{ category }}">
+
+                    {{ message }}
+
+                </div>
+
+            {% endfor %}
+
+        {% endif %}
+
+    {% endwith %}
+
+    {% block content %}
+
+    {% endblock %}
+
+</main>
+
+<footer>
+
+    <p>
+
+        © 2026 Student Portal | Built with Flask
+
+    </p>
+
+</footer>
 
 </body>
 </html>

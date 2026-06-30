@@ -18,18 +18,14 @@ from database import (
     search_students,
     total_students,
     total_departments,
-    insert_faculty,
-    get_faculty,
-    get_faculty_by_id,
     connect_db,
     save_attendance,
-    total_faculty,
     create_table,
-    create_faculty_table,
     create_attendance_table,
     get_attendance_by_date,
     get_attendance_by_student,
-    insert_marks,  # Added this import
+    insert_marks,
+    student_login,
 )
 
 app = Flask(__name__)
@@ -56,7 +52,6 @@ def allowed_file(filename):
 print("🔧 Initializing database...")
 try:
     create_table()
-    create_faculty_table()
     create_attendance_table()
     print("✅ Database tables ready!")
 except Exception as e:
@@ -93,6 +88,33 @@ def home():
         else:
             flash("Invalid Username or Password", "error")
 
+    return render_template("landing.html")
+
+
+# -----------------------------
+# Admin Login
+# -----------------------------
+@app.route("/admin-login", methods=["GET", "POST"])
+def admin_login():
+
+    if "admin" in session:
+        return redirect(url_for("dashboard"))
+
+    if request.method == "POST":
+
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "").strip()
+
+        if username == "admin" and password == "admin123":
+
+            session["admin"] = username
+            flash("Login Successful!", "success")
+
+            return redirect(url_for("dashboard"))
+
+        else:
+            flash("Invalid Username or Password", "error")
+
     return render_template("login.html")
 
 # -----------------------------
@@ -104,18 +126,50 @@ def dashboard():
     try:
         total = total_students()
         departments = total_departments()
-        faculty_count = total_faculty()
     except Exception as e:
         flash(f"Error loading dashboard: {str(e)}", "error")
         total = 0
         departments = 0
-        faculty_count = 0
 
     return render_template(
         "index.html",
         total=total,
-        departments=departments,
-        faculty_count=faculty_count
+        departments=departments
+    )
+
+
+# -----------------------------
+# Student Dashboard
+# -----------------------------
+@app.route("/student-dashboard")
+def student_dashboard():
+
+    if "student_id" not in session:
+
+        flash("Please login first.", "error")
+
+        return redirect(url_for("student_login_page"))
+
+    return render_template("student_dashboard.html")
+
+
+# -----------------------------
+# Student Profile
+# -----------------------------
+@app.route("/my-profile")
+def my_profile():
+
+    if "student_id" not in session:
+
+        flash("Please login first.", "error")
+
+        return redirect(url_for("student_login_page"))
+
+    student = get_student_by_id(session["student_id"])
+
+    return render_template(
+        "student_profile.html",
+        student=student
     )
 
 # -----------------------------
@@ -123,8 +177,14 @@ def dashboard():
 # -----------------------------
 @app.route("/logout")
 def logout():
+
     session.pop("admin", None)
+    session.pop("student_id", None)
+    session.pop("student_name", None)
+    session.clear()   # Recommended
+
     flash("Logged out successfully!", "success")
+
     return redirect(url_for("home"))
 
 # -----------------------------
@@ -218,7 +278,8 @@ def update_student_route(id):
             usn,
             email,
             phone,
-            department
+            department,
+            
         )
 
         flash("Student updated successfully!", "success")
@@ -233,62 +294,77 @@ def update_student_route(id):
 @app.route("/upload-students", methods=["GET", "POST"])
 @login_required
 def upload_students():
+
     if request.method == "POST":
+
         try:
+
             if "excel_file" not in request.files:
                 flash("No file selected!", "error")
                 return redirect(url_for("upload_students"))
-                
+
             excel_file = request.files["excel_file"]
-            
+
             if excel_file.filename == "":
-                flash("No file selected!", "error")
+                flash("Please select an Excel file.", "error")
                 return redirect(url_for("upload_students"))
 
             if not allowed_file(excel_file.filename):
-                flash("Invalid file type! Please upload an Excel file (.xlsx or .xls)", "error")
+                flash("Please upload only .xlsx or .xls files.", "error")
                 return redirect(url_for("upload_students"))
-                
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(excel_file.filename))
+
+            filename = secure_filename(excel_file.filename)
+            file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+
             excel_file.save(file_path)
 
-            try:
-                workbook = openpyxl.load_workbook(file_path)
-                sheet = workbook.active
+            workbook = openpyxl.load_workbook(file_path)
+            sheet = workbook.active
 
-                imported_count = 0
-                for row in sheet.iter_rows(min_row=2, values_only=True):
-                    if row[0] is None or str(row[0]).strip() == "":
-                        continue
-                        
-                    name = str(row[0]).strip()
-                    usn = str(row[1]).strip() if row[1] else ""
-                    email = str(row[2]).strip() if row[2] else ""
-                    phone = str(row[3]).strip() if row[3] else ""
-                    department = str(row[4]).strip() if row[4] else ""
+            imported_count = 0
 
-                    insert_student(
-                        name,
-                        usn,
-                        email,
-                        phone,
-                        department,
-                        ""
-                    )
-                    imported_count += 1
+            for row in sheet.iter_rows(min_row=2, values_only=True):
 
-                flash(f"Successfully imported {imported_count} students!", "success")
-                
-            except Exception as e:
-                flash(f"Error importing students: {str(e)}", "error")
-            finally:
-                if os.path.exists(file_path):
-                    os.remove(file_path)
+                if row[0] is None:
+                    continue
+
+                name = str(row[0]).strip()
+                usn = str(row[1]).strip()
+                email = str(row[2]).strip()
+                phone = str(row[3]).strip()
+                department = str(row[4]).strip()
+
+                # Default Password = USN
+                password = usn
+
+                # Default Photo
+                photo = ""
+
+                insert_student(
+                    name,
+                    usn,
+                    password,
+                    email,
+                    phone,
+                    department,
+                    photo
+                )
+
+                imported_count += 1
+
+            workbook.close()
+
+            if os.path.exists(file_path):
+                os.remove(file_path)
+
+            flash(f"{imported_count} Students Imported Successfully!", "success")
 
             return redirect(url_for("student_list"))
-            
+
         except Exception as e:
-            flash(f"Error processing file: {str(e)}", "error")
+
+            flash(f"Error importing students: {str(e)}", "error")
+
             return redirect(url_for("upload_students"))
 
     return render_template("upload_students.html")
@@ -336,6 +412,7 @@ def add_student():
             email = request.form.get("email", "").strip()
             phone = request.form.get("phone", "").strip()
             department = request.form.get("department", "").strip()
+            password = usn
             
             photo = request.files.get("photo")
             photo_filename = ""
@@ -356,7 +433,8 @@ def add_student():
                 email,
                 phone,
                 department,
-                photo_filename
+                photo_filename,
+                password
             )
 
             flash(f"Student '{name}' added successfully!", "success")
@@ -440,6 +518,41 @@ def attendance_report():
         records=records,
         attendance_date=attendance_date
     )
+
+
+# -----------------------------
+# My Attendance
+# -----------------------------
+# -----------------------------
+# My Attendance
+# -----------------------------
+@app.route("/my-attendance")
+def my_attendance():
+
+    if "student_id" not in session:
+
+        flash("Please login first.", "error")
+
+        return redirect(url_for("student_login_page"))
+
+    records = get_attendance_by_student(session["student_id"])
+
+    return render_template(
+        "my_attendance.html",
+        records=records
+    )
+
+
+# -----------------------------
+# My Marks
+# -----------------------------
+@app.route("/my-marks")
+def my_marks():
+
+    if "student_id" not in session:
+        return redirect(url_for("student_login"))
+
+    return "<h2>My Marks Page - Coming Soon</h2>"
 
 # -----------------------------
 # Download Attendance PDF
@@ -529,6 +642,7 @@ def student_attendance(student_id):
     except Exception as e:
         flash(f"Error loading attendance: {str(e)}", "error")
         return redirect(url_for("student_list"))
+    
 
 # -----------------------------
 # Marks Management (Fixed - Single Route)
@@ -588,6 +702,34 @@ def marks():
     return render_template("add_marks.html",students=students)
 
 
+
+# -----------------------------
+# Student Login
+# -----------------------------
+@app.route("/student-login", methods=["GET", "POST"])
+def student_login_page():
+
+    if request.method == "POST":
+
+        usn = request.form["usn"]
+        password = request.form["password"]
+
+        student = student_login(usn, password)
+
+        if student:
+
+            session["student_id"] = student[0]
+            session["student_name"] = student[1]
+
+            flash("Login Successful!", "success")
+
+            return redirect(url_for("student_dashboard"))
+
+        else:
+
+            flash("Invalid USN or Password", "error")
+
+    return render_template("student_login.html")
 
 # -----------------------------
 # Run Flask

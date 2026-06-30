@@ -13,7 +13,8 @@ def create_table():
     CREATE TABLE IF NOT EXISTS students(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        usn TEXT NOT NULL,
+        password TEXT NOT NULL,
+        usn TEXT NOT NULL UNIQUE,
         email TEXT NOT NULL,
         phone TEXT NOT NULL,
         department TEXT NOT NULL,
@@ -23,26 +24,6 @@ def create_table():
     connection.commit()
     connection.close()
     print("Students Table Created Successfully!")
-
-# Create Faculty Table
-def create_faculty_table():
-    connection = connect_db()
-    cursor = connection.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS faculty(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            faculty_id TEXT NOT NULL,
-            email TEXT NOT NULL,
-            phone TEXT NOT NULL,
-            department TEXT NOT NULL,
-            designation TEXT NOT NULL,
-            photo TEXT
-        )
-    """)
-    connection.commit()
-    connection.close()
-    print("Faculty Table Created Successfully!")
 
 # Create Attendance Table
 def create_attendance_table():
@@ -61,40 +42,39 @@ def create_attendance_table():
     connection.close()
     print("Attendance Table Created Successfully!")
 
+# Create Marks Table
+def create_marks_table():
+    connection = connect_db()
+    cursor = connection.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS marks(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id INTEGER,
+            subject TEXT,
+            internal1 INTEGER,
+            internal2 INTEGER,
+            semester_exam INTEGER,
+            total INTEGER,
+            grade TEXT,
+            FOREIGN KEY(student_id) REFERENCES students(id)
+        )
+    """)
+    connection.commit()
+    connection.close()
+    print("Marks Table Created Successfully!")
+
 # Insert Student
-def insert_student(name, usn, email, phone, department, photo):
+def insert_student(name, usn, password, email, phone, department, photo):
     connection = connect_db()
     cursor = connection.cursor()
     cursor.execute("""
         INSERT INTO students
-        (name, usn, email, phone, department, photo)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """, (name, usn, email, phone, department, photo))
+        (name, usn, password, email, phone, department, photo)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (name, usn, password, email, phone, department, photo))
     connection.commit()
     connection.close()
     print("Student Saved Successfully!")
-
-# Insert Faculty
-def insert_faculty(name, faculty_id, email, phone, department, designation, photo):
-    connection = connect_db()
-    cursor = connection.cursor()
-    cursor.execute("""
-        INSERT INTO faculty
-        (name, faculty_id, email, phone, department, designation, photo)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (name, faculty_id, email, phone, department, designation, photo))
-    connection.commit()
-    connection.close()
-    print("Faculty Saved Successfully!")
-
-# Get All Faculty
-def get_faculty():
-    connection = connect_db()
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM faculty")
-    faculty = cursor.fetchall()
-    connection.close()
-    return faculty
 
 # Get All Students
 def get_students():
@@ -118,7 +98,7 @@ def search_students(keyword):
     connection.close()
     return students
 
-# Get One Student By ID
+# Get One Student By ID (single definition)
 def get_student_by_id(student_id):
     connection = connect_db()
     cursor = connection.cursor()
@@ -167,24 +147,6 @@ def total_departments():
     connection.close()
     return total
 
-# Get Faculty By ID
-def get_faculty_by_id(faculty_id):
-    connection = connect_db()
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM faculty WHERE id = ?", (faculty_id,))
-    faculty = cursor.fetchone()
-    connection.close()
-    return faculty
-
-# Count Total Faculty
-def total_faculty():
-    connection = connect_db()
-    cursor = connection.cursor()
-    cursor.execute("SELECT COUNT(*) FROM faculty")
-    total = cursor.fetchone()[0]
-    connection.close()
-    return total
-
 # Save Attendance
 def save_attendance(student_id, attendance_date, status):
     connection = connect_db()
@@ -197,146 +159,57 @@ def save_attendance(student_id, attendance_date, status):
     connection.close()
     print("Attendance Saved Successfully!")
 
-# Get Attendance by Date
+# Get Attendance by Date (single definition, returns student name, usn, status)
 def get_attendance_by_date(attendance_date):
     connection = connect_db()
     cursor = connection.cursor()
     cursor.execute("""
-        SELECT a.*, s.name, s.usn 
-        FROM attendance a
-        JOIN students s ON a.student_id = s.id
-        WHERE a.attendance_date = ?
-    """, (attendance_date,))
-    attendance = cursor.fetchall()
-    connection.close()
-    return attendance
-
-# Get All Attendance Records
-def get_all_attendance():
-    connection = connect_db()
-    cursor = connection.cursor()
-    cursor.execute("""
-        SELECT a.*, s.name, s.usn 
-        FROM attendance a
-        JOIN students s ON a.student_id = s.id
-        ORDER BY a.attendance_date DESC
-    """)
-    attendance = cursor.fetchall()
-    connection.close()
-    return attendance
-
-
-
-# ---------------------------------
-# Get Attendance By Date
-# ---------------------------------
-def get_attendance_by_date(attendance_date):
-
-    connection = connect_db()
-
-    cursor = connection.cursor()
-
-    cursor.execute("""
-
-        SELECT
-            students.name,
-            students.usn,
-            attendance.status
-
+        SELECT students.name, students.usn, attendance.status
         FROM attendance
-
-        JOIN students
-
-        ON attendance.student_id = students.id
-
+        JOIN students ON attendance.student_id = students.id
         WHERE attendance.attendance_date = ?
-
     """, (attendance_date,))
-
     records = cursor.fetchall()
-
     connection.close()
-
     return records
 
-
+# Get Attendance by Student
 def get_attendance_by_student(student_id):
-
     connection = connect_db()
-
     cursor = connection.cursor()
-
     cursor.execute("""
         SELECT *
         FROM attendance
         WHERE student_id = ?
     """, (student_id,))
-
     records = cursor.fetchall()
-
     connection.close()
-
     return records
 
-
-# ---------------------------------
-# Insert Marks
-# ---------------------------------
-
-def insert_marks(student_id, subject, internal1,
-                 internal2, semester_exam,
-                 total, grade):
-
+# Insert Marks (single definition)
+def insert_marks(student_id, subject, internal1, internal2, semester_exam, total, grade):
     connection = connect_db()
-
     cursor = connection.cursor()
-
-    cursor.execute("""
-
-        INSERT INTO marks(
-
-            student_id,
-            subject,
-            internal1,
-            internal2,
-            semester_exam,
-            total,
-            grade,
-
-        )
-
-        VALUES(?,?,?,?,?,?,?)
-
-    """, (
-
-        student_id,
-        subject,
-        internal1,
-        internal2,
-        semester_exam,
-        total,
-        grade
-
-    ))
-
-    connection.commit()
-
-    connection.close()
-
-
-def insert_marks(student_id, subject, internal1,
-                 internal2, semester_exam,
-                 total, grade):
-    conn = sqlite3.connect("students.db")
-    cursor = conn.cursor()
-
     cursor.execute("""
         INSERT INTO marks (student_id, subject, internal1, internal2, semester_exam, total, grade)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     """, (student_id, subject, internal1, internal2, semester_exam, total, grade))
+    connection.commit()
+    connection.close()
+    print("Marks Inserted Successfully!")
 
-    conn.commit()
-    conn.close()
+# Student Login
+def student_login(usn, password):
+    connection = connect_db()
+    cursor = connection.cursor()
+    cursor.execute("""
+        SELECT *
+        FROM students
+        WHERE usn = ? AND password = ?
+    """, (usn, password))
+    student = cursor.fetchone()
+    connection.close()
+    return student
 
 
 # ---------------------------------
@@ -350,14 +223,13 @@ def create_marks_table():
     cursor = connection.cursor()
 
     cursor.execute("""
-
         CREATE TABLE IF NOT EXISTS marks(
 
             id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-            student_id INTEGER,
+            student_id INTEGER NOT NULL,
 
-            subject TEXT,
+            subject TEXT NOT NULL,
 
             internal1 INTEGER,
 
@@ -372,7 +244,6 @@ def create_marks_table():
             FOREIGN KEY(student_id) REFERENCES students(id)
 
         )
-
     """)
 
     connection.commit()
@@ -381,11 +252,9 @@ def create_marks_table():
 
     print("Marks Table Created Successfully!")
 
-    
-
-# Create Tables Automatically
+# Create all tables automatically
 if __name__ == "__main__":
     create_table()
-    create_faculty_table()
     create_attendance_table()
+    create_marks_table()
     create_marks_table()
