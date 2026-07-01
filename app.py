@@ -523,9 +523,6 @@ def attendance_report():
 # -----------------------------
 # My Attendance
 # -----------------------------
-# -----------------------------
-# My Attendance
-# -----------------------------
 @app.route("/my-attendance")
 def my_attendance():
 
